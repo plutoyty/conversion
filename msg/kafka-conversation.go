@@ -15,9 +15,8 @@
 package data_conversion
 
 import (
+	pb "conversion/proto/msg"
 	"fmt"
-	//"github.com/OpenIMSDK/Open-IM-Server/pkg/rpcclient"
-	pb "github.com/OpenIMSDK/protocol/msg"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
 	"sync"
