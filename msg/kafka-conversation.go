@@ -15,15 +15,11 @@
 package data_conversion
 
 import (
-	"context"
 	pb "conversion/proto/msg"
 	"fmt"
-	msg2 "github.com/OpenIMSDK/protocol/msg"
-	openkeeper "github.com/OpenIMSDK/tools/discoveryregistry/zookeeper"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
 	"sync"
-	"time"
 )
 
 var (
@@ -43,7 +39,8 @@ const (
 var consumer sarama.Consumer
 var producerV2 sarama.SyncProducer
 var wg sync.WaitGroup
-var msgRpcClient msg2.MsgClient
+
+//var msgRpcClient msg2.MsgClient
 
 func init() {
 
@@ -67,7 +64,7 @@ func init() {
 	}
 	consumer = consumerT
 
-	msgRpcClient = NewMessage()
+	//msgRpcClient = NewMessage()
 }
 
 func SendMessage() {
@@ -160,14 +157,14 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 //	return msgClient, nil
 //}
 
-func NewMessage() msg2.MsgClient {
-	discov, err := openkeeper.NewClient([]string{ZkAddr}, ZKSchema,
-		openkeeper.WithFreq(time.Hour), openkeeper.WithRoundRobin(), openkeeper.WithUserNameAndPassword(ZKUsername,
-			ZKPassword), openkeeper.WithTimeout(10))
-	conn, err := discov.GetConn(context.Background(), MsgName)
-	if err != nil {
-		panic(err)
-	}
-	client := msg2.NewMsgClient(conn)
-	return client
-}
+//func NewMessage() msg2.MsgClient {
+//	discov, err := openkeeper.NewClient([]string{ZkAddr}, ZKSchema,
+//		openkeeper.WithFreq(time.Hour), openkeeper.WithRoundRobin(), openkeeper.WithUserNameAndPassword(ZKUsername,
+//			ZKPassword), openkeeper.WithTimeout(10))
+//	conn, err := discov.GetConn(context.Background(), MsgName)
+//	if err != nil {
+//		panic(err)
+//	}
+//	client := msg2.NewMsgClient(conn)
+//	return client
+//}
