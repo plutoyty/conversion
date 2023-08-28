@@ -16,9 +16,11 @@ package data_conversion
 
 import (
 	"context"
-	pb "conversion/proto/msg"
+	pbmsg "conversion/proto/msg"
 	"fmt"
+	"github.com/OpenIMSDK/protocol/constant"
 	msgv3 "github.com/OpenIMSDK/protocol/msg"
+	"github.com/OpenIMSDK/protocol/sdkws"
 	openKeeper "github.com/OpenIMSDK/tools/discoveryregistry/zookeeper"
 	"github.com/OpenIMSDK/tools/log"
 	"github.com/OpenIMSDK/tools/mw"
@@ -115,7 +117,7 @@ func GetMessage() {
 				Transfer([]*sarama.ConsumerMessage{msg})
 
 				//V2
-				//msgFromMQV2 := pb.MsgDataToMQ{}
+				//msgFromMQV2 := pbmsg.MsgDataToMQ{}
 				//err := proto.Unmarshal(msg.Value, &msgFromMQV2)
 				//if err != nil {
 				//	fmt.Printf("err:%s \n", err)
@@ -142,14 +144,60 @@ func GetMessage() {
 
 func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 	for i := 0; i < len(consumerMessages); i++ {
-		msgFromMQV2 := pb.MsgDataToMQ{}
+		msgFromMQV2 := pbmsg.MsgDataToMQ{}
 		err := proto.Unmarshal(consumerMessages[i].Value, &msgFromMQV2)
 		if err != nil {
 			fmt.Printf("err:%s \n", err)
 		}
 		fmt.Printf("msg:%s \n", &msgFromMQV2)
-		fmt.Printf("rpcClient:%s \n", msgRpcClient)
-		//msgRpcClient.SendMsg(context.Background(),msgFromMQV2)
+		//fmt.Printf("rpcClient:%s \n", msgRpcClient)
+		if msgFromMQV2.MsgData.SessionType == constant.SingleChatType {
+			if string(consumerMessages[i].Key) != msgFromMQV2.MsgData.SendID {
+				continue
+			}
+			offlinePushInfo := &sdkws.OfflinePushInfo{
+				Title:         msgFromMQV2.MsgData.OfflinePushInfo.Title,
+				Desc:          msgFromMQV2.MsgData.OfflinePushInfo.Desc,
+				Ex:            msgFromMQV2.MsgData.OfflinePushInfo.Ex,
+				IOSPushSound:  msgFromMQV2.MsgData.OfflinePushInfo.IOSPushSound,
+				IOSBadgeCount: msgFromMQV2.MsgData.OfflinePushInfo.IOSBadgeCount,
+				SignalInfo:    "",
+			}
+			msgData := &sdkws.MsgData{
+				SendID:           msgFromMQV2.MsgData.SendID,
+				RecvID:           msgFromMQV2.MsgData.RecvID,
+				GroupID:          msgFromMQV2.MsgData.GroupID,
+				ClientMsgID:      msgFromMQV2.MsgData.ClientMsgID,
+				ServerMsgID:      msgFromMQV2.MsgData.ServerMsgID,
+				SenderPlatformID: msgFromMQV2.MsgData.SenderPlatformID,
+				SenderNickname:   msgFromMQV2.MsgData.SenderNickname,
+				SenderFaceURL:    msgFromMQV2.MsgData.SenderFaceURL,
+				SessionType:      msgFromMQV2.MsgData.SessionType,
+				MsgFrom:          msgFromMQV2.MsgData.MsgFrom,
+				ContentType:      msgFromMQV2.MsgData.ContentType,
+				Content:          msgFromMQV2.MsgData.Content,
+				Seq:              int64(msgFromMQV2.MsgData.Seq),
+				SendTime:         msgFromMQV2.MsgData.SendTime,
+				CreateTime:       msgFromMQV2.MsgData.CreateTime,
+				Status:           msgFromMQV2.MsgData.Status,
+				IsRead:           false,
+				Options:          msgFromMQV2.MsgData.Options,
+				OfflinePushInfo:  offlinePushInfo,
+				AtUserIDList:     msgFromMQV2.MsgData.AtUserIDList,
+				AttachedInfo:     msgFromMQV2.MsgData.AttachedInfo,
+				Ex:               msgFromMQV2.MsgData.Ex,
+			}
+			resp, err := msgRpcClient.SendMsg(context.Background(), &msgv3.SendMsgReq{MsgData: msgData})
+			if err != nil {
+				fmt.Printf("resp err: %s", err)
+			}
+			fmt.Printf("resp: %s", resp)
+		} else if msgFromMQV2.MsgData.SessionType == constant.GroupChatType {
+
+		} else if msgFromMQV2.MsgData.SessionType == constant.SuperGroupChatType {
+
+		}
+
 	}
 }
 
@@ -175,7 +223,8 @@ func NewMessage() msgv3.MsgClient {
 			ZKUsername,
 			ZKPassword),
 		openKeeper.WithTimeout(10),
-		openKeeper.WithLogger(log.NewZkLogger()))
+		openKeeper.WithLogger(log.NewZkLogger()),
+	)
 	if err != nil {
 		fmt.Printf("discov, err:%s", err)
 	}
