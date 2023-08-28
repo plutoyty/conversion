@@ -165,9 +165,14 @@ func NewMessage() msgv3.MsgClient {
 	discov, err := openKeeper.NewClient([]string{ZkAddr}, ZKSchema,
 		openKeeper.WithFreq(time.Hour), openKeeper.WithRoundRobin(), openKeeper.WithUserNameAndPassword(ZKUsername,
 			ZKPassword), openKeeper.WithTimeout(10))
+	if err != nil {
+		fmt.Printf("discov, err:%s", err)
+	}
+
 	conn, err := discov.GetConn(context.Background(), MsgName)
 	if err != nil {
-		panic(err)
+		fmt.Printf("conn, err:%s", err)
+		//panic(err)
 	}
 	client := msgv3.NewMsgClient(conn)
 	return client
