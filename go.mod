@@ -31,7 +31,7 @@ require (
 )
 
 require (
-	//github.com/OpenIMSDK/Open-IM-Server v1.0.8-0.20230525082922-6b0a2c9464ed
+	github.com/OpenIMSDK/Open-IM-Server v0.0.0-20230825130314-31ae8271e7ee
 	github.com/Shopify/sarama v1.29.0
 	google.golang.org/protobuf v1.31.0
 )

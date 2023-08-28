@@ -17,9 +17,14 @@ package data_conversion
 import (
 	pb "conversion/proto/msg"
 	"fmt"
+	"github.com/OpenIMSDK/Open-IM-Server/pkg/rpcclient"
+	openKeeper "github.com/OpenIMSDK/tools/discoveryregistry/zookeeper"
+	"github.com/OpenIMSDK/tools/errs"
+	"github.com/OpenIMSDK/tools/log"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
 	"sync"
+	"time"
 )
 
 var (
@@ -38,6 +43,7 @@ const (
 var consumer sarama.Consumer
 var producerV2 sarama.SyncProducer
 var wg sync.WaitGroup
+var msgRpcClient rpcclient.MessageRpcClient
 
 func init() {
 
@@ -60,6 +66,12 @@ func init() {
 		fmt.Printf("fail to start consumer, err:%v\n", err)
 	}
 	consumer = consumerT
+
+	RpcClient, err := GetMsgRpcService()
+	if err != nil {
+		fmt.Printf("rpc.err : %s \n", err)
+	}
+	msgRpcClient = RpcClient
 }
 
 func SendMessage() {
@@ -83,7 +95,7 @@ func GetMessage() {
 	}
 	fmt.Println(partitionList)
 	//var ch chan int
-	//msgRpcClient, err := GetMsgRpcService()
+
 	if err != nil {
 		fmt.Printf("rpc err:%s", err)
 	}
@@ -99,15 +111,15 @@ func GetMessage() {
 		go func(sarama.PartitionConsumer) {
 			defer wg.Done()
 			for msg := range pc.Messages() {
-				//Transfer([]*sarama.ConsumerMessage{msg}, msgRpcClient)
+				Transfer([]*sarama.ConsumerMessage{msg})
 
 				//V2
-				msgFromMQV2 := pb.MsgDataToMQ{}
-				err := proto.Unmarshal(msg.Value, &msgFromMQV2)
-				if err != nil {
-					fmt.Printf("err:%s \n", err)
-				}
-				fmt.Printf("msg:%s \n", &msgFromMQV2)
+				//msgFromMQV2 := pb.MsgDataToMQ{}
+				//err := proto.Unmarshal(msg.Value, &msgFromMQV2)
+				//if err != nil {
+				//	fmt.Printf("err:%s \n", err)
+				//}
+				//fmt.Printf("msg:%s \n", &msgFromMQV2)
 
 				//V3
 				//msgFromMQ := &sdkws.MsgData{}
@@ -127,26 +139,27 @@ func GetMessage() {
 	//_ = <-ch
 }
 
-//func Transfer(consumerMessages []*sarama.ConsumerMessage, msgRpcClient rpcclient.MessageRpcClient) {
-//	for i := 0; i < len(consumerMessages); i++ {
-//		msgFromMQV2 := pb.MsgDataToMQ{}
-//		err := proto.Unmarshal(consumerMessages[i].Value, &msgFromMQV2)
-//		if err != nil {
-//			fmt.Printf("err:%s \n", err)
-//		}
-//		fmt.Printf("msg:%s \n", &msgFromMQV2)
-//		//msgRpcClient.SendMsg(context.Background(),msgFromMQV2)
-//	}
-//}
-//
-//// GetMsgRpcService Convenient for detachment
-//func GetMsgRpcService() (rpcclient.MessageRpcClient, error) {
-//	client, err := openKeeper.NewClient([]string{ZkAddr}, ZKSchema,
-//		openKeeper.WithFreq(time.Hour), openKeeper.WithRoundRobin(), openKeeper.WithUserNameAndPassword(ZKUsername,
-//			ZKPassword), openKeeper.WithTimeout(10), openKeeper.WithLogger(log.NewZkLogger()))
-//	msgClient := rpcclient.NewMessageRpcClient(client)
-//	if err != nil {
-//		return msgClient, errs.Wrap(err)
-//	}
-//	return msgClient, nil
-//}
+func Transfer(consumerMessages []*sarama.ConsumerMessage) {
+	for i := 0; i < len(consumerMessages); i++ {
+		msgFromMQV2 := pb.MsgDataToMQ{}
+		err := proto.Unmarshal(consumerMessages[i].Value, &msgFromMQV2)
+		if err != nil {
+			fmt.Printf("err:%s \n", err)
+		}
+		fmt.Printf("msg:%s \n", &msgFromMQV2)
+		fmt.Printf("rpcClient:%s \n", msgRpcClient)
+		//msgRpcClient.SendMsg(context.Background(),msgFromMQV2)
+	}
+}
+
+// GetMsgRpcService Convenient for detachment
+func GetMsgRpcService() (rpcclient.MessageRpcClient, error) {
+	client, err := openKeeper.NewClient([]string{ZkAddr}, ZKSchema,
+		openKeeper.WithFreq(time.Hour), openKeeper.WithRoundRobin(), openKeeper.WithUserNameAndPassword(ZKUsername,
+			ZKPassword), openKeeper.WithTimeout(10), openKeeper.WithLogger(log.NewZkLogger()))
+	msgClient := rpcclient.NewMessageRpcClient(client)
+	if err != nil {
+		return msgClient, errs.Wrap(err)
+	}
+	return msgClient, nil
+}
