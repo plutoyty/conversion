@@ -15,10 +15,11 @@
 package data_conversion
 
 import (
+	"context"
 	pb "conversion/proto/msg"
 	"fmt"
-	"github.com/OpenIMSDK/Open-IM-Server/pkg/rpcclient"
-	openKeeper "github.com/OpenIMSDK/tools/discoveryregistry/zookeeper"
+	"github.com/OpenIMSDK/protocol/msg"
+	openkeeper "github.com/OpenIMSDK/tools/discoveryregistry/zookeeper"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
 	"sync"
@@ -36,13 +37,13 @@ const (
 	ZKSchema   = "openim"
 	ZKUsername = ""
 	ZKPassword = ""
+	MsgName    = "Msg"
 )
 
 var consumer sarama.Consumer
 var producerV2 sarama.SyncProducer
 var wg sync.WaitGroup
-
-var msgRpcClient rpcclient.MessageRpcClient
+var msgRpcClient msg.MsgClient
 
 func init() {
 
@@ -66,11 +67,7 @@ func init() {
 	}
 	consumer = consumerT
 
-	RpcClient, err := GetMsgRpcService()
-	if err != nil {
-		fmt.Printf("rpc.err : %s \n", err)
-	}
-	msgRpcClient = RpcClient
+	msgRpcClient = NewMessage()
 }
 
 func SendMessage() {
@@ -152,13 +149,25 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 }
 
 // GetMsgRpcService Convenient for detachment
-func GetMsgRpcService() (rpcclient.MessageRpcClient, error) {
-	client, err := openKeeper.NewClient([]string{ZkAddr}, ZKSchema,
-		openKeeper.WithFreq(time.Hour), openKeeper.WithRoundRobin(), openKeeper.WithUserNameAndPassword(ZKUsername,
-			ZKPassword), openKeeper.WithTimeout(10))
-	msgClient := rpcclient.NewMessageRpcClient(client)
+//func GetMsgRpcService() (rpcclient.MessageRpcClient, error) {
+//	client, err := openKeeper.NewClient([]string{ZkAddr}, ZKSchema,
+//		openKeeper.WithFreq(time.Hour), openKeeper.WithRoundRobin(), openKeeper.WithUserNameAndPassword(ZKUsername,
+//			ZKPassword), openKeeper.WithTimeout(10))
+//	msgClient := rpcclient.NewMessageRpcClient(client)
+//	if err != nil {
+//		return msgClient, err
+//	}
+//	return msgClient, nil
+//}
+
+func NewMessage() msg.MsgClient {
+	discov, err := openkeeper.NewClient([]string{ZkAddr}, ZKSchema,
+		openkeeper.WithFreq(time.Hour), openkeeper.WithRoundRobin(), openkeeper.WithUserNameAndPassword(ZKUsername,
+			ZKPassword), openkeeper.WithTimeout(10))
+	conn, err := discov.GetConn(context.Background(), MsgName)
 	if err != nil {
-		return msgClient, err
+		panic(err)
 	}
-	return msgClient, nil
+	client := msg.NewMsgClient(conn)
+	return client
 }
