@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/OpenIMSDK/protocol v0.0.15 // indirect
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -59,6 +60,7 @@ require (
 
 require (
 	github.com/OpenIMSDK/Open-IM-Server v0.0.0-20230825130314-31ae8271e7ee
+	github.com/OpenIMSDK/tools v0.0.14
 	github.com/Shopify/sarama v1.29.0
 	google.golang.org/protobuf v1.31.0
 )
