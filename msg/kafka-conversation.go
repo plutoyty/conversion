@@ -43,7 +43,7 @@ const (
 var consumer sarama.Consumer
 var producerV2 sarama.SyncProducer
 var wg sync.WaitGroup
-var msgRpcClient msg.MsgClient
+var msgRpcClient msg2.MsgClient
 
 func init() {
 
