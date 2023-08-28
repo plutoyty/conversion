@@ -33,7 +33,7 @@ var (
 )
 
 const (
-	ZkAddr     = "127.0.0.1:2181"
+	ZkAddr     = "43.134.63.160:2181"
 	ZKSchema   = "openim"
 	ZKUsername = ""
 	ZKPassword = ""
