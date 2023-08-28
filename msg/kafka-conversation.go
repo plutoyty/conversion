@@ -15,10 +15,12 @@
 package data_conversion
 
 import (
+	"context"
 	pb "conversion/proto/msg"
 	"fmt"
 	msgv3 "github.com/OpenIMSDK/protocol/msg"
 	openKeeper "github.com/OpenIMSDK/tools/discoveryregistry/zookeeper"
+	"github.com/OpenIMSDK/tools/log"
 	"github.com/OpenIMSDK/tools/mw"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
@@ -35,7 +37,7 @@ var (
 )
 
 const (
-	ZkAddr     = "127.0.0.1:2181"
+	ZkAddr     = "43.134.63.160:2181"
 	ZKSchema   = "openim"
 	ZKUsername = ""
 	ZKPassword = ""
@@ -146,7 +148,7 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 			fmt.Printf("err:%s \n", err)
 		}
 		fmt.Printf("msg:%s \n", &msgFromMQV2)
-		//fmt.Printf("rpcClient:%s \n", msgRpcClient)
+		fmt.Printf("rpcClient:%s \n", msgRpcClient)
 		//msgRpcClient.SendMsg(context.Background(),msgFromMQV2)
 	}
 }
@@ -164,19 +166,25 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 //}
 
 func NewMessage() msgv3.MsgClient {
-	discov, err := openKeeper.NewClient([]string{ZkAddr}, ZKSchema,
-		openKeeper.WithFreq(time.Hour), openKeeper.WithRoundRobin(), openKeeper.WithUserNameAndPassword(ZKUsername,
-			ZKPassword), openKeeper.WithTimeout(10))
-	discov.AddOption(mw.GrpcClient(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	discov, err := openKeeper.NewClient(
+		[]string{ZkAddr},
+		ZKSchema,
+		openKeeper.WithFreq(time.Hour),
+		openKeeper.WithRoundRobin(),
+		openKeeper.WithUserNameAndPassword(
+			ZKUsername,
+			ZKPassword),
+		openKeeper.WithTimeout(10),
+		openKeeper.WithLogger(log.NewZkLogger()))
 	if err != nil {
 		fmt.Printf("discov, err:%s", err)
 	}
-
-	//conn, err := discov.GetConn(context.Background(), MsgName)
-	//if err != nil {
-	//	fmt.Printf("conn, err:%s", err)
-	//panic(err)
-	//}
-	//client := msgv3.NewMsgClient(conn)
-	return nil
+	discov.AddOption(mw.GrpcClient(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := discov.GetConn(context.Background(), MsgName)
+	if err != nil {
+		fmt.Printf("conn, err:%s", err)
+		panic(err)
+	}
+	client := msgv3.NewMsgClient(conn)
+	return client
 }
