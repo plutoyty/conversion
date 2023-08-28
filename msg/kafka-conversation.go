@@ -20,8 +20,11 @@ import (
 	"fmt"
 	msgv3 "github.com/OpenIMSDK/protocol/msg"
 	openKeeper "github.com/OpenIMSDK/tools/discoveryregistry/zookeeper"
+	"github.com/OpenIMSDK/tools/mw"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"sync"
 	"time"
 )
@@ -165,6 +168,7 @@ func NewMessage() msgv3.MsgClient {
 	discov, err := openKeeper.NewClient([]string{ZkAddr}, ZKSchema,
 		openKeeper.WithFreq(time.Hour), openKeeper.WithRoundRobin(), openKeeper.WithUserNameAndPassword(ZKUsername,
 			ZKPassword), openKeeper.WithTimeout(10))
+	discov.AddOption(mw.GrpcClient(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		fmt.Printf("discov, err:%s", err)
 	}
