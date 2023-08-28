@@ -144,7 +144,7 @@ func GetMessage() {
 
 func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 	for i := 0; i < len(consumerMessages); i++ {
-		fmt.Printf("Partition:%d, Offset:%d, Key:%s, Value:%s\n", consumerMessages[i].Partition, consumerMessages[i].Offset, string(consumerMessages[i].Key))
+		fmt.Printf("Partition:%d, Offset:%d, Key:%s \n", consumerMessages[i].Partition, consumerMessages[i].Offset, string(consumerMessages[i].Key))
 		msgFromMQV2 := pbmsg.MsgDataToMQ{}
 		err := proto.Unmarshal(consumerMessages[i].Value, &msgFromMQV2)
 		if err != nil {
