@@ -15,7 +15,6 @@
 package data_conversion
 
 import (
-	"context"
 	pb "conversion/proto/msg"
 	"fmt"
 	msgv3 "github.com/OpenIMSDK/protocol/msg"
@@ -36,7 +35,7 @@ var (
 )
 
 const (
-	ZkAddr     = "43.134.63.160:2181"
+	ZkAddr     = "127.0.0.1:2181"
 	ZKSchema   = "openim"
 	ZKUsername = ""
 	ZKPassword = ""
@@ -173,11 +172,11 @@ func NewMessage() msgv3.MsgClient {
 		fmt.Printf("discov, err:%s", err)
 	}
 
-	conn, err := discov.GetConn(context.Background(), MsgName)
-	if err != nil {
-		fmt.Printf("conn, err:%s", err)
-		//panic(err)
-	}
-	client := msgv3.NewMsgClient(conn)
-	return client
+	//conn, err := discov.GetConn(context.Background(), MsgName)
+	//if err != nil {
+	//	fmt.Printf("conn, err:%s", err)
+	//panic(err)
+	//}
+	//client := msgv3.NewMsgClient(conn)
+	return nil
 }
