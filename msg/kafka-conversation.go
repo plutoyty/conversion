@@ -187,7 +187,8 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 				AttachedInfo:     msgFromMQV2.MsgData.AttachedInfo,
 				Ex:               msgFromMQV2.MsgData.Ex,
 			}
-			resp, err := msgRpcClient.SendMsg(context.Background(), &msgv3.SendMsgReq{MsgData: msgData})
+			ctx := context.WithValue(context.Background(), "operationID", msgFromMQV2.OperationID)
+			resp, err := msgRpcClient.SendMsg(ctx, &msgv3.SendMsgReq{MsgData: msgData})
 			if err != nil {
 				fmt.Printf("resp err: %s", err)
 			}
