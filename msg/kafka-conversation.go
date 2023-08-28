@@ -68,7 +68,7 @@ func init() {
 	}
 	consumer = consumerT
 
-	msgRpcClient = NewMessage()
+	//msgRpcClient = NewMessage()
 }
 
 func SendMessage() {
