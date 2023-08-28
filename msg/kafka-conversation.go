@@ -131,7 +131,7 @@ func GetMessage() {
 				//	fmt.Printf("err:%s \n", err)
 				//}
 				//fmt.Printf("msg:%s \n", &msgFromMQ)
-				fmt.Printf("Partition:%d, Offset:%d, Key:%s, Value:%s\n", msg.Partition, msg.Offset, string(msg.Key), string(msg.Value))
+				//fmt.Printf("Partition:%d, Offset:%d, Key:%s, Value:%s\n", msg.Partition, msg.Offset, string(msg.Key), string(msg.Value))
 			}
 
 		}(pc)
@@ -144,6 +144,7 @@ func GetMessage() {
 
 func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 	for i := 0; i < len(consumerMessages); i++ {
+		fmt.Printf("Partition:%d, Offset:%d, Key:%s, Value:%s\n", consumerMessages[i].Partition, consumerMessages[i].Offset, string(consumerMessages[i].Key))
 		msgFromMQV2 := pbmsg.MsgDataToMQ{}
 		err := proto.Unmarshal(consumerMessages[i].Value, &msgFromMQV2)
 		if err != nil {
@@ -190,7 +191,7 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 			ctx := context.WithValue(context.Background(), "operationID", msgFromMQV2.OperationID)
 			resp, err := msgRpcClient.SendMsg(ctx, &msgv3.SendMsgReq{MsgData: msgData})
 			if err != nil {
-				fmt.Printf("resp err: %s", err)
+				fmt.Printf("resp err: %s \n", err)
 			}
 			fmt.Printf("resp: %s", resp)
 		} else if msgFromMQV2.MsgData.SessionType == constant.GroupChatType {
