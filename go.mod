@@ -3,7 +3,7 @@ module conversion
 go 1.20
 
 require (
-	github.com/OpenIMSDK/protocol v0.0.1
+	github.com/OpenIMSDK/protocol v0.0.15
 	github.com/OpenIMSDK/tools v0.0.14
 	github.com/golang/protobuf v1.5.3
 	golang.org/x/net v0.14.0
