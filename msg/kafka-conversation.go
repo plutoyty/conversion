@@ -18,7 +18,7 @@ import (
 	"context"
 	pb "conversion/proto/msg"
 	"fmt"
-	"github.com/OpenIMSDK/protocol/msg"
+	msg2 "github.com/OpenIMSDK/protocol/msg"
 	openkeeper "github.com/OpenIMSDK/tools/discoveryregistry/zookeeper"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
@@ -160,7 +160,7 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 //	return msgClient, nil
 //}
 
-func NewMessage() msg.MsgClient {
+func NewMessage() msg2.MsgClient {
 	discov, err := openkeeper.NewClient([]string{ZkAddr}, ZKSchema,
 		openkeeper.WithFreq(time.Hour), openkeeper.WithRoundRobin(), openkeeper.WithUserNameAndPassword(ZKUsername,
 			ZKPassword), openkeeper.WithTimeout(10))
@@ -168,6 +168,6 @@ func NewMessage() msg.MsgClient {
 	if err != nil {
 		panic(err)
 	}
-	client := msg.NewMsgClient(conn)
+	client := msg2.NewMsgClient(conn)
 	return client
 }
