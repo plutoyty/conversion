@@ -17,6 +17,7 @@ package data_conversion
 import (
 	"context"
 	pbmsg "conversion/proto/msg"
+	"encoding/json"
 	"fmt"
 	"github.com/OpenIMSDK/protocol/constant"
 	msgv3 "github.com/OpenIMSDK/protocol/msg"
@@ -142,6 +143,10 @@ func GetMessage() {
 	//_ = <-ch
 }
 
+type TextElem struct {
+	Content string `json:"content"`
+}
+
 func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 	for i := 0; i < len(consumerMessages); i++ {
 		fmt.Printf("Partition:%d, Offset:%d, Key:%s \n", consumerMessages[i].Partition, consumerMessages[i].Offset, string(consumerMessages[i].Key))
@@ -195,47 +200,60 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 			}
 			fmt.Printf("resp: %s \n", resp)
 		} else if msgFromMQV2.MsgData.SessionType == constant.GroupChatType {
-			//if string(consumerMessages[i].Key) != msgFromMQV2.MsgData.SendID {
-			//	continue
-			//}
-			//offlinePushInfo := &sdkws.OfflinePushInfo{
-			//	Title:         msgFromMQV2.MsgData.OfflinePushInfo.Title,
-			//	Desc:          msgFromMQV2.MsgData.OfflinePushInfo.Desc,
-			//	Ex:            msgFromMQV2.MsgData.OfflinePushInfo.Ex,
-			//	IOSPushSound:  msgFromMQV2.MsgData.OfflinePushInfo.IOSPushSound,
-			//	IOSBadgeCount: msgFromMQV2.MsgData.OfflinePushInfo.IOSBadgeCount,
-			//	SignalInfo:    "",
-			//}
-			//msgData := &sdkws.MsgData{
-			//	SendID:           msgFromMQV2.MsgData.SendID,
-			//	RecvID:           msgFromMQV2.MsgData.RecvID,
-			//	GroupID:          msgFromMQV2.MsgData.GroupID,
-			//	ClientMsgID:      msgFromMQV2.MsgData.ClientMsgID,
-			//	ServerMsgID:      msgFromMQV2.MsgData.ServerMsgID,
-			//	SenderPlatformID: msgFromMQV2.MsgData.SenderPlatformID,
-			//	SenderNickname:   msgFromMQV2.MsgData.SenderNickname,
-			//	SenderFaceURL:    msgFromMQV2.MsgData.SenderFaceURL,
-			//	SessionType:      msgFromMQV2.MsgData.SessionType,
-			//	MsgFrom:          msgFromMQV2.MsgData.MsgFrom,
-			//	ContentType:      msgFromMQV2.MsgData.ContentType,
-			//	Content:          msgFromMQV2.MsgData.Content,
-			//	Seq:              int64(msgFromMQV2.MsgData.Seq),
-			//	SendTime:         msgFromMQV2.MsgData.SendTime,
-			//	CreateTime:       msgFromMQV2.MsgData.CreateTime,
-			//	Status:           msgFromMQV2.MsgData.Status,
-			//	IsRead:           false,
-			//	Options:          msgFromMQV2.MsgData.Options,
-			//	OfflinePushInfo:  offlinePushInfo,
-			//	AtUserIDList:     msgFromMQV2.MsgData.AtUserIDList,
-			//	AttachedInfo:     msgFromMQV2.MsgData.AttachedInfo,
-			//	Ex:               msgFromMQV2.MsgData.Ex,
-			//}
-			//ctx := context.WithValue(context.Background(), "operationID", msgFromMQV2.OperationID)
-			//resp, err := msgRpcClient.SendMsg(ctx, &msgv3.SendMsgReq{MsgData: msgData})
-			//if err != nil {
-			//	fmt.Printf("resp err: %s \n", err)
-			//}
-			//fmt.Printf("resp: %s \n", resp)
+			if string(consumerMessages[i].Key) != msgFromMQV2.MsgData.SendID {
+				continue
+			}
+			if msgFromMQV2.MsgData.ContentType < constant.ContentTypeBegin || msgFromMQV2.MsgData.ContentType > constant.AdvancedText {
+				continue
+			}
+			if msgFromMQV2.MsgData.ContentType == constant.Text {
+				text := string(msgFromMQV2.MsgData.Content)
+				textElem := TextElem{
+					Content: text,
+				}
+				msgFromMQV2.MsgData.Content, err = json.Marshal(textElem)
+				if err != nil {
+					fmt.Printf("test err: %s \n", err)
+				}
+			}
+			offlinePushInfo := &sdkws.OfflinePushInfo{
+				Title:         msgFromMQV2.MsgData.OfflinePushInfo.Title,
+				Desc:          msgFromMQV2.MsgData.OfflinePushInfo.Desc,
+				Ex:            msgFromMQV2.MsgData.OfflinePushInfo.Ex,
+				IOSPushSound:  msgFromMQV2.MsgData.OfflinePushInfo.IOSPushSound,
+				IOSBadgeCount: msgFromMQV2.MsgData.OfflinePushInfo.IOSBadgeCount,
+				SignalInfo:    "",
+			}
+			msgData := &sdkws.MsgData{
+				SendID:           msgFromMQV2.MsgData.SendID,
+				RecvID:           msgFromMQV2.MsgData.RecvID,
+				GroupID:          msgFromMQV2.MsgData.GroupID,
+				ClientMsgID:      msgFromMQV2.MsgData.ClientMsgID,
+				ServerMsgID:      msgFromMQV2.MsgData.ServerMsgID,
+				SenderPlatformID: msgFromMQV2.MsgData.SenderPlatformID,
+				SenderNickname:   msgFromMQV2.MsgData.SenderNickname,
+				SenderFaceURL:    msgFromMQV2.MsgData.SenderFaceURL,
+				SessionType:      msgFromMQV2.MsgData.SessionType,
+				MsgFrom:          msgFromMQV2.MsgData.MsgFrom,
+				ContentType:      msgFromMQV2.MsgData.ContentType,
+				Content:          msgFromMQV2.MsgData.Content,
+				Seq:              int64(msgFromMQV2.MsgData.Seq),
+				SendTime:         msgFromMQV2.MsgData.SendTime,
+				CreateTime:       msgFromMQV2.MsgData.CreateTime,
+				Status:           msgFromMQV2.MsgData.Status,
+				IsRead:           false,
+				Options:          msgFromMQV2.MsgData.Options,
+				OfflinePushInfo:  offlinePushInfo,
+				AtUserIDList:     msgFromMQV2.MsgData.AtUserIDList,
+				AttachedInfo:     msgFromMQV2.MsgData.AttachedInfo,
+				Ex:               msgFromMQV2.MsgData.Ex,
+			}
+			ctx := context.WithValue(context.Background(), "operationID", msgFromMQV2.OperationID)
+			resp, err := msgRpcClient.SendMsg(ctx, &msgv3.SendMsgReq{MsgData: msgData})
+			if err != nil {
+				fmt.Printf("resp err: %s \n", err)
+			}
+			fmt.Printf("resp: %s \n", resp)
 		} else if msgFromMQV2.MsgData.SessionType == constant.SuperGroupChatType {
 			offlinePushInfo := &sdkws.OfflinePushInfo{
 				Title:         msgFromMQV2.MsgData.OfflinePushInfo.Title,
@@ -276,7 +294,6 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 			}
 			fmt.Printf("resp: %s \n", resp)
 		}
-
 	}
 }
 
