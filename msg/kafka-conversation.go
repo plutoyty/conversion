@@ -294,6 +294,7 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 			}
 			fmt.Printf("resp: %s \n", resp)
 		}
+		fmt.Printf("\n\n\n")
 	}
 }
 
