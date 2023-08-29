@@ -157,6 +157,19 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 		}
 		fmt.Printf("msg:%s \n", &msgFromMQV2)
 		//fmt.Printf("rpcClient:%s \n", msgRpcClient)
+		if msgFromMQV2.MsgData.ContentType < constant.ContentTypeBegin || msgFromMQV2.MsgData.ContentType > constant.AdvancedText {
+			continue
+		}
+		if msgFromMQV2.MsgData.ContentType == constant.Text {
+			text := string(msgFromMQV2.MsgData.Content)
+			textElem := TextElem{
+				Content: text,
+			}
+			msgFromMQV2.MsgData.Content, err = json.Marshal(textElem)
+			if err != nil {
+				fmt.Printf("test err: %s \n", err)
+			}
+		}
 		if msgFromMQV2.MsgData.SessionType == constant.SingleChatType || msgFromMQV2.MsgData.SessionType == constant.NotificationChatType {
 			if string(consumerMessages[i].Key) != msgFromMQV2.MsgData.SendID {
 				continue
@@ -203,19 +216,6 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 			if string(consumerMessages[i].Key) != msgFromMQV2.MsgData.SendID {
 				continue
 			}
-			if msgFromMQV2.MsgData.ContentType < constant.ContentTypeBegin || msgFromMQV2.MsgData.ContentType > constant.AdvancedText {
-				continue
-			}
-			if msgFromMQV2.MsgData.ContentType == constant.Text {
-				text := string(msgFromMQV2.MsgData.Content)
-				textElem := TextElem{
-					Content: text,
-				}
-				msgFromMQV2.MsgData.Content, err = json.Marshal(textElem)
-				if err != nil {
-					fmt.Printf("test err: %s \n", err)
-				}
-			}
 			offlinePushInfo := &sdkws.OfflinePushInfo{
 				Title:         msgFromMQV2.MsgData.OfflinePushInfo.Title,
 				Desc:          msgFromMQV2.MsgData.OfflinePushInfo.Desc,
@@ -235,7 +235,7 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 				SenderFaceURL:    msgFromMQV2.MsgData.SenderFaceURL,
 				SessionType:      msgFromMQV2.MsgData.SessionType,
 				MsgFrom:          msgFromMQV2.MsgData.MsgFrom,
-				ContentType:      msgFromMQV2.MsgData.ContentType,
+				ContentType:      constant.SuperGroupChatType,
 				Content:          msgFromMQV2.MsgData.Content,
 				Seq:              int64(msgFromMQV2.MsgData.Seq),
 				SendTime:         msgFromMQV2.MsgData.SendTime,
