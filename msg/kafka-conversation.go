@@ -152,7 +152,7 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 		}
 		fmt.Printf("msg:%s \n", &msgFromMQV2)
 		//fmt.Printf("rpcClient:%s \n", msgRpcClient)
-		if msgFromMQV2.MsgData.SessionType == constant.SingleChatType {
+		if msgFromMQV2.MsgData.SessionType == constant.SingleChatType || msgFromMQV2.MsgData.SessionType == constant.NotificationChatType {
 			if string(consumerMessages[i].Key) != msgFromMQV2.MsgData.SendID {
 				continue
 			}
@@ -193,17 +193,94 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 			if err != nil {
 				fmt.Printf("resp err: %s \n", err)
 			}
-			fmt.Printf("resp: %s", resp)
+			fmt.Printf("resp: %s \n", resp)
 		} else if msgFromMQV2.MsgData.SessionType == constant.GroupChatType {
-
+			//if string(consumerMessages[i].Key) != msgFromMQV2.MsgData.SendID {
+			//	continue
+			//}
+			//offlinePushInfo := &sdkws.OfflinePushInfo{
+			//	Title:         msgFromMQV2.MsgData.OfflinePushInfo.Title,
+			//	Desc:          msgFromMQV2.MsgData.OfflinePushInfo.Desc,
+			//	Ex:            msgFromMQV2.MsgData.OfflinePushInfo.Ex,
+			//	IOSPushSound:  msgFromMQV2.MsgData.OfflinePushInfo.IOSPushSound,
+			//	IOSBadgeCount: msgFromMQV2.MsgData.OfflinePushInfo.IOSBadgeCount,
+			//	SignalInfo:    "",
+			//}
+			//msgData := &sdkws.MsgData{
+			//	SendID:           msgFromMQV2.MsgData.SendID,
+			//	RecvID:           msgFromMQV2.MsgData.RecvID,
+			//	GroupID:          msgFromMQV2.MsgData.GroupID,
+			//	ClientMsgID:      msgFromMQV2.MsgData.ClientMsgID,
+			//	ServerMsgID:      msgFromMQV2.MsgData.ServerMsgID,
+			//	SenderPlatformID: msgFromMQV2.MsgData.SenderPlatformID,
+			//	SenderNickname:   msgFromMQV2.MsgData.SenderNickname,
+			//	SenderFaceURL:    msgFromMQV2.MsgData.SenderFaceURL,
+			//	SessionType:      msgFromMQV2.MsgData.SessionType,
+			//	MsgFrom:          msgFromMQV2.MsgData.MsgFrom,
+			//	ContentType:      msgFromMQV2.MsgData.ContentType,
+			//	Content:          msgFromMQV2.MsgData.Content,
+			//	Seq:              int64(msgFromMQV2.MsgData.Seq),
+			//	SendTime:         msgFromMQV2.MsgData.SendTime,
+			//	CreateTime:       msgFromMQV2.MsgData.CreateTime,
+			//	Status:           msgFromMQV2.MsgData.Status,
+			//	IsRead:           false,
+			//	Options:          msgFromMQV2.MsgData.Options,
+			//	OfflinePushInfo:  offlinePushInfo,
+			//	AtUserIDList:     msgFromMQV2.MsgData.AtUserIDList,
+			//	AttachedInfo:     msgFromMQV2.MsgData.AttachedInfo,
+			//	Ex:               msgFromMQV2.MsgData.Ex,
+			//}
+			//ctx := context.WithValue(context.Background(), "operationID", msgFromMQV2.OperationID)
+			//resp, err := msgRpcClient.SendMsg(ctx, &msgv3.SendMsgReq{MsgData: msgData})
+			//if err != nil {
+			//	fmt.Printf("resp err: %s \n", err)
+			//}
+			//fmt.Printf("resp: %s \n", resp)
 		} else if msgFromMQV2.MsgData.SessionType == constant.SuperGroupChatType {
-
+			offlinePushInfo := &sdkws.OfflinePushInfo{
+				Title:         msgFromMQV2.MsgData.OfflinePushInfo.Title,
+				Desc:          msgFromMQV2.MsgData.OfflinePushInfo.Desc,
+				Ex:            msgFromMQV2.MsgData.OfflinePushInfo.Ex,
+				IOSPushSound:  msgFromMQV2.MsgData.OfflinePushInfo.IOSPushSound,
+				IOSBadgeCount: msgFromMQV2.MsgData.OfflinePushInfo.IOSBadgeCount,
+				SignalInfo:    "",
+			}
+			msgData := &sdkws.MsgData{
+				SendID:           msgFromMQV2.MsgData.SendID,
+				RecvID:           msgFromMQV2.MsgData.RecvID,
+				GroupID:          msgFromMQV2.MsgData.GroupID,
+				ClientMsgID:      msgFromMQV2.MsgData.ClientMsgID,
+				ServerMsgID:      msgFromMQV2.MsgData.ServerMsgID,
+				SenderPlatformID: msgFromMQV2.MsgData.SenderPlatformID,
+				SenderNickname:   msgFromMQV2.MsgData.SenderNickname,
+				SenderFaceURL:    msgFromMQV2.MsgData.SenderFaceURL,
+				SessionType:      msgFromMQV2.MsgData.SessionType,
+				MsgFrom:          msgFromMQV2.MsgData.MsgFrom,
+				ContentType:      msgFromMQV2.MsgData.ContentType,
+				Content:          msgFromMQV2.MsgData.Content,
+				Seq:              int64(msgFromMQV2.MsgData.Seq),
+				SendTime:         msgFromMQV2.MsgData.SendTime,
+				CreateTime:       msgFromMQV2.MsgData.CreateTime,
+				Status:           msgFromMQV2.MsgData.Status,
+				IsRead:           false,
+				Options:          msgFromMQV2.MsgData.Options,
+				OfflinePushInfo:  offlinePushInfo,
+				AtUserIDList:     msgFromMQV2.MsgData.AtUserIDList,
+				AttachedInfo:     msgFromMQV2.MsgData.AttachedInfo,
+				Ex:               msgFromMQV2.MsgData.Ex,
+			}
+			ctx := context.WithValue(context.Background(), "operationID", msgFromMQV2.OperationID)
+			resp, err := msgRpcClient.SendMsg(ctx, &msgv3.SendMsgReq{MsgData: msgData})
+			if err != nil {
+				fmt.Printf("resp err: %s \n", err)
+			}
+			fmt.Printf("resp: %s \n", resp)
 		}
 
 	}
 }
 
-// GetMsgRpcService Convenient for detachment
+//GetMsgRpcService Convenient for detachment
 //func GetMsgRpcService() (rpcclient.MessageRpcClient, error) {
 //	client, err := openKeeper.NewClient([]string{ZkAddr}, ZKSchema,
 //		openKeeper.WithFreq(time.Hour), openKeeper.WithRoundRobin(), openKeeper.WithUserNameAndPassword(ZKUsername,
