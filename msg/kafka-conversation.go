@@ -157,9 +157,6 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 		}
 		fmt.Printf("msg:%s \n", &msgFromMQV2)
 		//fmt.Printf("rpcClient:%s \n", msgRpcClient)
-		if msgFromMQV2.MsgData.ContentType < constant.ContentTypeBegin || msgFromMQV2.MsgData.ContentType > constant.AdvancedText {
-			continue
-		}
 		if msgFromMQV2.MsgData.ContentType == constant.Text {
 			text := string(msgFromMQV2.MsgData.Content)
 			textElem := TextElem{
@@ -216,6 +213,9 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 			if string(consumerMessages[i].Key) != msgFromMQV2.MsgData.SendID {
 				continue
 			}
+			if msgFromMQV2.MsgData.ContentType < constant.ContentTypeBegin || msgFromMQV2.MsgData.ContentType > constant.AdvancedText {
+				continue
+			}
 			offlinePushInfo := &sdkws.OfflinePushInfo{
 				Title:         msgFromMQV2.MsgData.OfflinePushInfo.Title,
 				Desc:          msgFromMQV2.MsgData.OfflinePushInfo.Desc,
@@ -233,9 +233,9 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 				SenderPlatformID: msgFromMQV2.MsgData.SenderPlatformID,
 				SenderNickname:   msgFromMQV2.MsgData.SenderNickname,
 				SenderFaceURL:    msgFromMQV2.MsgData.SenderFaceURL,
-				SessionType:      msgFromMQV2.MsgData.SessionType,
+				SessionType:      constant.SuperGroupChatType,
 				MsgFrom:          msgFromMQV2.MsgData.MsgFrom,
-				ContentType:      constant.SuperGroupChatType,
+				ContentType:      msgFromMQV2.MsgData.ContentType,
 				Content:          msgFromMQV2.MsgData.Content,
 				Seq:              int64(msgFromMQV2.MsgData.Seq),
 				SendTime:         msgFromMQV2.MsgData.SendTime,
@@ -255,6 +255,9 @@ func Transfer(consumerMessages []*sarama.ConsumerMessage) {
 			}
 			fmt.Printf("resp: %s \n", resp)
 		} else if msgFromMQV2.MsgData.SessionType == constant.SuperGroupChatType {
+			if msgFromMQV2.MsgData.ContentType < constant.ContentTypeBegin || msgFromMQV2.MsgData.ContentType > constant.AdvancedText {
+				continue
+			}
 			offlinePushInfo := &sdkws.OfflinePushInfo{
 				Title:         msgFromMQV2.MsgData.OfflinePushInfo.Title,
 				Desc:          msgFromMQV2.MsgData.OfflinePushInfo.Desc,
